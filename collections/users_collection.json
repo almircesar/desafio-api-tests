@@ -11,6 +11,59 @@
 			"name": "Auth",
 			"item": [
 				{
+					"name": "Preparar usuário para login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const unique = Date.now();",
+									"pm.environment.set(\"loginNome\", \"Usuario Login \" + unique);",
+									"pm.environment.set(\"loginEmail\", \"login.\" + unique + \"@email.com\");",
+									"pm.environment.set(\"loginPassword\", \"123456\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Usuário de login preparado\", function () {",
+									"    pm.expect([201, 400]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"{{loginNome}}\",\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\",\n  \"administrador\": \"true\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Login",
 					"event": [
 						{
@@ -19,8 +72,12 @@
 								"exec": [
 									"const response = pm.response.json();",
 									"",
-									"pm.test(\"Login com sucesso\", function () {",
-									"    pm.expect(pm.response.code).to.eql(200);",
+									"pm.test(\"Status code deve ser 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar token de autorização\", function () {",
+									"    pm.expect(response.authorization).to.exist;",
 									"});",
 									"",
 									"pm.environment.set(\"token\", response.authorization);"
@@ -35,7 +92,145 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"fulano@qa.com\",\n  \"password\": \"teste\"\n}",
+							"raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login com senha inválida",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code deve ser 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Deve retornar mensagem de email ou senha inválidos\", function () {",
+									"    pm.expect(response.message).to.eql(\"Email e/ou senha inválidos\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"fulano@qa.com\",\n  \"password\": \"senhaErrada\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login sem email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code deve ser 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Deve retornar mensagem de email obrigatório\", function () {",
+									"    pm.expect(response.email).to.exist;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"\",\n  \"password\": \"teste\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login sem password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code deve ser 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Deve retornar mensagem de password obrigatório\", function () {",
+									"    pm.expect(response.password).to.exist;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"fulano@qa.com\",\n  \"password\": \"\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -799,144 +994,6 @@
 							"path": [
 								"usuarios",
 								"1234567890abcdef"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login com senha inválida",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code deve ser 401\", function () {",
-									"    pm.response.to.have.status(401);",
-									"});",
-									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Deve retornar mensagem de email ou senha inválidos\", function () {",
-									"    pm.expect(response.message).to.eql(\"Email e/ou senha inválidos\");",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"fulano@qa.com\",\n  \"password\": \"senhaErrada\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login sem email",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code deve ser 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Deve retornar mensagem de email obrigatório\", function () {",
-									"    pm.expect(response.email).to.exist;",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"\",\n  \"password\": \"teste\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login sem password",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code deve ser 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Deve retornar mensagem de password obrigatório\", function () {",
-									"    pm.expect(response.password).to.exist;",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"fulano@qa.com\",\n  \"password\": \"\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"login"
 							]
 						}
 					},
