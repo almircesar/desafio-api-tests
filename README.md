@@ -179,7 +179,39 @@ Dentro dele estará o arquivo `report.html`.
 
 ---
 
-## 👨‍💻 Autor
+## � Observações e recomendações
+
+Para melhorar confiabilidade e usabilidade do projeto, seguem algumas recomendações e notas operacionais:
+
+- Versão do Node: o workflow usa Node.js 20. Se for rodar localmente com npm scripts, use v16+ ou v20 para compatibilidade.
+- Execução local (instalação local de dependências):
+
+```bash
+# instalar como dependências de desenvolvimento no projeto (recomendado)
+npm install --save-dev newman newman-reporter-htmlextra
+
+# exemplo de script npm (adicionar ao package.json)
+{
+	"scripts": {
+		"test:newman": "newman run collections/users_collection.json -e environments/dev_environment.json",
+		"test:report": "newman run collections/users_collection.json -e environments/dev_environment.json -r cli,htmlextra --reporter-htmlextra-export reports/report.html"
+	}
+}
+```
+
+- Rede/endpoint: os testes usam `https://serverest.dev` (definido em `environments/dev_environment.json`). Verifique se o endpoint está acessível na sua rede antes de rodar os testes.
+- Dados duplicados: a coleção possui um caso de email fixo (`duplicado.teste.fixo@email.com`) para validar cenário de email já cadastrado — isso pode gerar flakiness
+	se o recurso já existir no ambiente; recomenda-se usar emails gerados dinamicamente ou limpar o estado entre execuções.
+- Dependências de ordem: a coleção contém fluxos dependentes (criar usuário → obter/atualizar → deletar). Ao executar apenas testes individuais, assegure-se de fornecer as variáveis necessárias no environment.
+- Logs e troubleshooting:
+	- Verifique retorno HTTP e mensagens de erro nos testes para identificar causas (ex.: validações do servidor em PT-BR).
+	- Falhas comuns: timeout, endpoint inacessível, parâmetros ausentes no environment, limites de taxa.
+
+---
+
+---
+
+## �👨‍💻 Autor
 
 Desenvolvido por Almir Cesar
 
