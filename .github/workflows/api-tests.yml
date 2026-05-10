@@ -1,0 +1,46 @@
+name: API Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Newman e reporter htmlextra
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+
+      - name: Criar pasta de relatórios
+        run: mkdir -p reports
+
+      - name: Executar testes de API
+        run: |
+          newman run collections/users_collection.json \
+            -e environments/dev_environment.json \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export reports/report.html
+
+      - name: Publicar relatório HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: reports/report.html
