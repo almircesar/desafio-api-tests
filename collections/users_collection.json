@@ -499,6 +499,72 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "[USERS] Validar Lista de usuários",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Deve retornar status 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Deve retornar um JSON válido\", function () {",
+                  "  pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Deve retornar a propriedade quantidade\", function () {",
+                  "  const response = pm.response.json();",
+                  "",
+                  "  pm.expect(response).to.have.property(\"quantidade\");",
+                  "  pm.expect(response.quantidade).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"Deve retornar a lista de usuários\", function () {",
+                  "  const response = pm.response.json();",
+                  "",
+                  "  pm.expect(response).to.have.property(\"usuarios\");",
+                  "  pm.expect(response.usuarios).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Cada usuário deve possuir os campos obrigatórios\", function () {",
+                  "  const response = pm.response.json();",
+                  "",
+                  "  response.usuarios.forEach(function (usuario) {",
+                  "    pm.expect(usuario).to.have.property(\"nome\");",
+                  "    pm.expect(usuario).to.have.property(\"email\");",
+                  "    pm.expect(usuario).to.have.property(\"password\");",
+                  "    pm.expect(usuario).to.have.property(\"administrador\");",
+                  "    pm.expect(usuario).to.have.property(\"_id\");",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test(\"Tempo de resposta deve ser menor que 1000ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
